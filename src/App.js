@@ -24,6 +24,7 @@ function App() {
   const [nuname ,setnuname] = useState([]);
   const [nemail ,setnemail] = useState([]);
   const [nweb ,setnweb] = useState([]);
+
   //function for add user
   function adduser(e){
     e.preventDefault();
@@ -61,6 +62,59 @@ function App() {
     }
   }
 
+  //Update user in frontend usestate
+  function changeHandler(id,key,value) {
+    setUsers( (users)=>{
+      return users.map( (user)=>{ 
+        return user.id === id ? {...user,[key]:value} : user;
+      })
+    }) 
+  }
+
+  //update user backend
+  function updateUser(id){
+    //find edited user 
+    const details = users.find( (user)=> user.id === id);
+
+    //now set it in backend
+    fetch(`https://jsonplaceholder.typicode.com/users/${id}`,
+      {
+        method : "PUT",
+        body: JSON.stringify(details),
+        headers : {
+          'Content-Type': 'application/json; charset=utf-8'
+        }
+      }
+    ).then( (response) => response.json())
+    .then( (data)=>{
+      apptoast.show({
+        message : "User updated successfully",
+        intent : 'success',
+        timeout : 3000
+      })
+    })
+  }
+
+  //Delete a user
+  function deleteUser(id){
+    fetch(`https://jsonplaceholder.typicode.com/users/${id}`,
+      {
+        method:'DELETE',
+      }
+    ).then( (response)=> response.json())
+    .then( (data)=> {
+      setUsers( (ps)=> {
+        return ps.filter( (uer)=> uer.id !== id)
+
+      })
+    })
+
+    apptoast.show({
+      message : "User Deteted Successfully",
+      intent : 'danger',
+      timeout : 3000,
+    })
+  }
 
 
 
@@ -87,9 +141,9 @@ function App() {
               <td><EditableText value={user.name} /></td>
               <td> <EditableText value={user.username} /></td>
               <td> <EditableText value={user.email} /></td>
-              <td> <EditableText value={user.website} /></td>
-              <td><Button intent='primary'>Edit</Button>
-              <Button intent='danger'>Delete</Button></td>
+              <td> <EditableText onChange={ (value)=> changeHandler(user.id,'website',value) } value={user.website} /></td>
+              <td><Button onClick={ ()=> updateUser(user.id)} intent='primary'>Edit</Button> &nbsp;
+              <Button onClick={ ()=> deleteUser(user.id)} intent='danger'>Delete</Button></td>
             </tr>
           )
           }
